@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Compiler Value="/usr/bin/fpc" Date="1577471101"/>
+  <Params Value=" -MObjFPC -Scghi -Cg -O1 -g -gl -l -vewnhibq -Fi/home/sgm/lazproj/distenc/lib/x86_64-linux -Fu/home/sgm/.lazarus/onlinepackagemanager/packages/kcontrols/packages/kcontrols/lib/x86_64-linux -Fu/home/sgm/Desktop/lnet-master/lazaruspackage/lib/x86_64-linux -Fu/home/sgm/.lazarus/lib/DBFLaz/lib/x86_64-linux/gtk2 -Fu/home/sgm/.lazarus/lib/Printer4Lazarus/lib/x86_64-linux/gtk2 -Fu/home/sgm/.lazarus/lib/IDEIntf/units/x86_64-linux/gtk2 -Fu/home/sgm/.lazarus/lib/LazControls/lib/x86_64-linux/gtk2 -Fu/home/sgm/.lazarus/lib/cairocanvas_pkg/lib/x86_64-linux/gtk2 -Fu/home/sgm/.lazarus/lib/units/x86_64-linux/gtk2 -Fu/home/sgm/.lazarus/lib/LCLBase/units/x86_64-linux -Fu/home/sgm/.lazarus/lib/LazUtils/lib/x86_64-linux -Fu/home/sgm/.lazarus/lib/units/x86_64-linux -Fu/home/sgm/lazproj/distenc/ -FU/home/sgm/lazproj/distenc/lib/x86_64-linux/ -FE/home/sgm/lazproj/distenc/ -o/home/sgm/lazproj/distenc/distenc -dLCL -dLCLgtk2 distenc.lpr"/>
+</CONFIG>
