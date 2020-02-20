@@ -1,4 +1,5 @@
 # distenc
+
 In settings/settings.ini set the ip address of the network interface to bind to (defaults to 0.0.0.0 = all interfaces), and port.
 
 BaseVideoURL - set the url where the video files are to be found, eg http://yourip.com:8000/to_encode 
@@ -16,5 +17,9 @@ URL of file- only if the URL where the video file is to be hosted is different f
 
 then press "AddNewProj" button and wait. After pyscenedetect finishes, you should see the prject in the list view on the left. click it.
 
+# Dependencies
 
+Use OPM
 
+	ZControlsLaz
+	lnetvisual
