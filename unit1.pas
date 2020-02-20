@@ -43,6 +43,9 @@ type
     ButtonDisconnect: TButton;
     ButtonListen: TButton;
     CheckBoxSSL: TCheckBox;
+    EditBitOutDepth: TEdit;
+    EditCRF: TEdit;
+    EditBitInDepth: TEdit;
     EditCPU_USED: TEdit;
     EditSceneMinDuration: TEdit;
     EditSceneThreshold: TEdit;
@@ -53,6 +56,9 @@ type
     EditVideoURL: TLabeledEdit;
     KNEditPriority: TKNumberEdit;
     Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    LabelCRF: TLabel;
     LabelThreshold: TLabel;
     MenuItem5: TMenuItem;
     MinSceneS: TLabel;
@@ -127,7 +133,7 @@ type
       Started,Ended:TDateTime;
       Priority:Longint;
 
-      CPU_USED:String;
+      CPU_USED,BitDepthIn,BitDepthOut,CRF:String;
  end;
 
 var
@@ -280,6 +286,9 @@ begin
     Proj.user:=ProjectINI.ReadString(Section,'user','');
     Proj.Encoder:=ProjectINI.ReadString(Section,'Encoder','');
     Proj.CPU_USED:=ProjectINI.ReadString(Section,'CPU_USED','0');
+    Proj.BitDepthIn:=ProjectINI.ReadString(Section,'BitDepthIn','yuv420p');
+    Proj.BitDepthOut:=ProjectINI.ReadString(Section,'BitDepthOut','10');
+    Proj.CRF:=ProjectINI.ReadString(Section,'CRF','30');
     Proj.EncCmd:=ProjectINI.ReadString(Section,'EncCmd','');
     Proj.Started:=ProjectINI.ReadDateTime(Section,'Started',EncodeDate(1970,01,01)); //todo tofix, this shitty situation, use const 0 time and evaluate if something should be saved based on that
     Proj.Ended:=ProjectINI.ReadDateTime(Section,'Ended',EncodeDate(1970,01,01));
@@ -301,6 +310,9 @@ begin
     ProjectINI.WriteString(Proj.Name,'user',Proj.user);
     ProjectINI.WriteString(Proj.Name,'Encoder',Proj.Encoder);
     ProjectINI.WriteString(Proj.Name,'CPU_USED',Proj.CPU_USED);
+    ProjectINI.WriteString(Proj.Name,'BitDepthIn',Proj.BitDepthIn);
+    ProjectINI.WriteString(Proj.Name,'BitDepthOut',Proj.BitDepthOut);
+    ProjectINI.WriteString(Proj.Name,'CRF',Proj.CRF);
     ProjectINI.WriteString(Proj.Name,'EncCmd',Proj.EncCmd);
     ProjectINI.WriteDateTime(Proj.Name,'Started',Proj.Started);
     ProjectINI.WriteDateTime(Proj.Name,'Ended',Proj.Ended);
@@ -515,9 +527,12 @@ function JobString(const Project:TProjectRec; const x:dword; const msg:TStringLi
 var PieceFileName:string;
     var JobStr:String;
 begin
-  PieceFileName:=ExtractFileNameWithoutExt(Project.VFileName)+'-'+inttostr(x+1)+ExtractFileExt(Project.VFileName);           //windows ffmpeg does not like url quoted with single quote. linux one needs it for spaces (%20)
-  if msg[1]='LIN' then JobStr:='TAKEJOB'+dc+Project.Name+dc+IntToStr(x+1)+dc+Project.Encoder+dc+Project.Table[x,ColNFrames]+dc+PieceFileName+dc+''''+'ffmpeg'+''''+' -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+''''+Project.VFileURL+''''+' -an -sn -pix_fmt yuv420p10le  -c:v libaom-av1 -aq-mode 1 -crf 23 -b:v 0 -cpu-used '+Project.CPU_USED+' -g -1 -strict -2 -pass 1 -passlogfile '+''''+Project.VFileName+inttostr(x+1)+''''+' -f matroska /dev/null && '+''''+'ffmpeg'+''''+' -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+''''+Project.VFileURL+''''+' -an -sn -pix_fmt yuv420p10le -c:v libaom-av1 -aq-mode 1 -crf 23 -b:v 0 -cpu-used '+Project.CPU_USED+' -g -1 -strict -2 -pass 2 -passlogfile '+''''+Project.VFileName+inttostr(x+1)+''''+' '+''''+PieceFileName+''''
-   else if msg[1]='WIN' then JobStr:='TAKEJOB'+dc+Project.Name+dc+IntToStr(x+1)+dc+Project.Encoder+dc+Project.Table[x,ColNFrames]+dc+PieceFileName+dc+'"'+'"'+'ffmpeg'+'"'+' -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+'"'+Project.VFileURL+'"'+' -an -sn -pix_fmt yuv420p10le  -c:v libaom-av1 -aq-mode 1 -crf 23 -b:v 0 -cpu-used '+Project.CPU_USED+' -g -1 -strict -2 -pass 1 -passlogfile '+'"'+Project.VFileName+inttostr(x+1)+'"'+' -f matroska NUL && '+'"'+'ffmpeg'+'"'+' -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+'"'+Project.VFileURL+'"'+' -an -sn -pix_fmt yuv420p10le -c:v libaom-av1 -aq-mode 1 -crf 23 -b:v 0 -cpu-used '+Project.CPU_USED+' -g -1 -strict -2 -pass 2 -passlogfile '+'"'+Project.VFileName+inttostr(x+1)+'"'+' '+'"'+PieceFileName+'"'+'"';
+  PieceFileName:=ExtractFileNameWithoutExt(Project.VFileName)+'-'+inttostr(x+1)+ExtractFileExt(Project.VFileName)+'.mkv';           //windows ffmpeg does not like url quoted with single quote. linux one needs it for spaces (%20)
+  if msg[1]='LIN' then JobStr:='TAKEJOB'+dc+Project.Name+dc+IntToStr(x+1)+dc+Project.Encoder+dc+Project.Table[x,ColNFrames]+dc+PieceFileName+dc
+        +''''+'ffmpeg'+''''+' -hide_banner -loglevel error -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+''''+Project.VFileURL+''''+' -an -sn -strict -2 -pix_fmt '+Project.BitDepthIn+' -vf "crop=1920:800:0:140" -f yuv4mpegpipe - | aomenc - --passes=2 --pass=1 --denoise-noise-level=6 --enable-fwd-kf=1 --kf-max-dist=9999999 --end-usage=q --lag-in-frames=25 --row-mt=0 --cq-level='+Project.CRF+' --bit-depth='+Project.BitDepthOut+' --cpu-used='+Project.CPU_USED+' --fpf='+''''+Project.VFileName+inttostr(x+1)+''''+' -o /dev/null && '
+        +''''+'ffmpeg'+''''+' -hide_banner -loglevel error -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+''''+Project.VFileURL+''''+' -an -sn -strict -2 -pix_fmt '+Project.BitDepthIn+' -vf "crop=1920:800:0:140" -f yuv4mpegpipe - | aomenc - --passes=2 --pass=2 --denoise-noise-level=6 --enable-fwd-kf=1 --kf-max-dist=9999999 --end-usage=q --lag-in-frames=25 --row-mt=0 --cq-level='+Project.CRF+' --bit-depth='+Project.BitDepthOut+' --cpu-used='+Project.CPU_USED+' --fpf='+''''+Project.VFileName+inttostr(x+1)+''''+' -o '+''''+PieceFileName+''''
+   else if msg[1]='WIN' then JobStr:='TAKEJOB'+dc+Project.Name+dc+IntToStr(x+1)+dc+Project.Encoder+dc+Project.Table[x,ColNFrames]+dc+PieceFileName+dc+'"'+'"'+'ffmpeg'+'"'+' -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+'"'+Project.VFileURL+'"'+' -an -sn -pix_fmt '+Project.BitDepthIn+' -c:v libaom-av1 -aq-mode 1 -crf '+Project.CRF+' -b:v 0 -cpu-used '+Project.CPU_USED+' -g -1 -strict -2 -pass 1 -passlogfile '+'"'+Project.VFileName+inttostr(x+1)+'"'+' -f matroska NUL && '+'"'+'ffmpeg'+'"'+' -y '+'-ss '+Project.Table[x,ColSs]+' -to '+Project.Table[x,ColTo]+' -i '+'"'+Project.VFileURL+'"'+' -an -sn -pix_fmt '+Project.BitDepthIn+' -c:v libaom-av1 -aq-mode 1 -crf 23 -b:v 0 -cpu-used '+Project.CPU_USED+' -g -1 -strict -2 -pass 2 -passlogfile '+'"'+Project.VFileName+inttostr(x+1)+'"'+' '+'"'+PieceFileName+'"'+'"';
+  Form1.MemoText.Append(JobStr);
   Result:=JobStr;
 end;
 
@@ -738,15 +753,9 @@ begin
      TimerCheckQueue.Enabled:=False;
      //debug check if there's no bugs when deleting while looping through this.
      for i:=high(PendingProjects) downto 0 do
-       if FileExists(PendingProjects[i].SceneCSVFilePath) then begin
-            SceneCSVNewFileName:=ExtractFileNameWithoutExt(PendingProjects[i].VFileName)+'-Scenes-'+PendingProjects[i].SceneThreshold+'-'+PendingProjects[i].SceneMinLength+'.csv';
-
-            RenameFile(PendingProjects[i].SceneCSVFilePath,PendingProjects[i].VFileDir+SceneCSVNewFileName);
-
-            PendingProjects[i].SceneCSVFileName:=SceneCSVNewFileName;
-            PendingProjects[i].SceneCSVFilePath:=PendingProjects[i].VFileDir+SceneCSVNewFileName;
-            AddQProject(i);
-       end else TimerCheckQueue.Enabled:=True;
+       if FileExists(PendingProjects[i].SceneCSVFilePath) then
+            AddQProject(i)
+         else TimerCheckQueue.Enabled:=True;
 end;
 
 
@@ -774,6 +783,9 @@ begin
     PendingProjects[p].VFileURL:=Stringreplace(PendingProjects[p].VFileURL,' ','%20',[rfReplaceAll]);
 
     PendingProjects[p].CPU_USED:=form1.EditCPU_USED.text;
+    PendingProjects[p].BitDepthIn:=form1.EditBitInDepth.text;
+    PendingProjects[p].BitDepthOut:=form1.EditBitOutDepth.text;
+    PendingProjects[p].CRF:=form1.EditCRF.text;
 
     PendingProjects[p].SceneThreshold := Form1.EditSceneThreshold.Text;
     PendingProjects[p].SceneMinLength := Form1.EditSceneMinDuration.Text;
@@ -782,27 +794,20 @@ begin
 
     PendingProjects[p].Priority:=0;
 
+    PendingProjects[p].SceneCSVFileName:=PendingProjects[p].VFileName+'-Scenes-'+PendingProjects[p].SceneThreshold+'-'+PendingProjects[p].SceneMinLength+'.csv';
+    PendingProjects[p].SceneCSVFilePath:=PendingProjects[p].VFileDir+PendingProjects[p].SceneCSVFileName;
     
     PendingProjects[p].Started:=Now;
 
-
-    //super shitty code
-    SceneCSVNewFileName:=ExtractFileNameWithoutExt(ExtractFileName(VideoFilePath))+'-Scenes-'+PendingProjects[p].SceneThreshold+'-'+PendingProjects[p].SceneMinLength+'.csv';
-
-    if FileExists(PendingProjects[p].VFileDir+SceneCSVNewFileName) then begin
-       PendingProjects[p].SceneCSVFileName:= SceneCSVNewFileName;
-       PendingProjects[p].SceneCSVFilePath:= PendingProjects[p].VFileDir+ SceneCSVNewFileName;
-       AddQProject(p);
-    end else begin
+    if FileExists(PendingProjects[p].SceneCSVFilePath) then
+       AddQProject(p)
+     else begin
        {$IFDEF UNIX}
-     ExecToStrings('/usr/bin/python',['/usr/bin/scenedetect','-i',VideoFilePath,'-s',ExtractFileName(VideoFilePath)+'stats.csv','-o',PendingProjects[p].VFileDir,'detect-content','-t',PendingProjects[p].SceneThreshold,'-m',PendingProjects[p].SceneMinLength+'s','list-scenes'],[]);
+     ExecToStrings('/usr/bin/python',['/usr/bin/scenedetect','-i',VideoFilePath,'-s',ExtractFileName(VideoFilePath)+'stats.csv','-o',PendingProjects[p].VFileDir,'detect-content','-t',PendingProjects[p].SceneThreshold,'-m',PendingProjects[p].SceneMinLength+'s','list-scenes','-f',PendingProjects[p].SceneCSVFileName],[]);
        {$ENDIF}
        {$IFDEF WINDOWS}
-        ExecToStrings('scenedetect',['-i',VideoFilePath,'-s',ExtractFileName(VideoFilePath)+'stats.csv','-o',PendingProjects[p].VFileDir,'detect-content','-t',PendingProjects[p].SceneThreshold,{'-m',PendingProjects[p].SceneMinLength+'s',}'list-scenes'],[]);
+        ExecToStrings('scenedetect',['-i',VideoFilePath,'-s',ExtractFileName(VideoFilePath)+'stats.csv','-o',PendingProjects[p].VFileDir,'detect-content','-t',PendingProjects[p].SceneThreshold,{'-m',PendingProjects[p].SceneMinLength+'s',}'list-scenes','-f',PendingProjects[p].SceneCSVFileName],[]);
        {$ENDIF}
-    PendingProjects[p].SceneCSVFileName:=ExtractFileNameWithoutExt(ExtractFileName(VideoFilePath))+'-Scenes.csv';
-    PendingProjects[p].SceneCSVFilePath:=PendingProjects[p].VFileDir+PendingProjects[p].SceneCSVFileName;
-
     Form1.TimerCheckQueue.Enabled:=True;
     end;
   end;
