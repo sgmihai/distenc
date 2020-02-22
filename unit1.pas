@@ -816,17 +816,18 @@ end;
 
 
 procedure Inits;
-var i:word;
+var
+  i:word;
 begin
-  BasePath := ExtractFilePath(ParamStr(0));
-  SettingsPath := BasePath+'settings'+PathDelim;
-  SettingsFile:=SettingsPath+SettingsFileName;
+  BasePath := Application.Location;
+  SettingsPath := IncludeTrailingPathDelimiter(BasePath + 'settings');
+  SettingsFile := SettingsPath + SettingsFileName;
   LoadSettings;
-  Listen(Form1.Fnet,ServerIp,ServerPort,Form1.SSL);
+  Listen(Form1.Fnet, ServerIp, ServerPort, Form1.SSL);
   VideoFileURL := '';
 
-  ProjectDir:=BasePath+'projects';
-  if not DirectoryExists(ProjectDir) then CreateDir(ProjectDir);
+  ProjectDir:= IncludeTrailingPathDelimiter(BasePath + 'projects');
+  ForceDirectories(ProjectDir);
 
   try
     VideoExt := TStringList.Create;
