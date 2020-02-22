@@ -143,7 +143,7 @@ var
   SettingsINI:TINIFile;
   SettingsFile,ProjectDir:String;
 
-  ProjectINI:TINIFile;
+  //ProjectINI:TINIFile; //it always used local in functions, TODO deleted it
 
   ServerIp,BaseVideoURL:String;
   ServerPort:word;
@@ -273,7 +273,7 @@ begin
       Grid.Cells[j,i+1]:=Table[i,j];
 end;
 
-procedure IniToProject(const Section:String; out Proj:TProjectRec);
+procedure IniToProject(ProjectINI:TINIFile; const Section:String; out Proj:TProjectRec);
 begin
     Proj.Name:=ProjectINI.ReadString(Section,'Name','');
     Proj.VFileDir:=ProjectINI.ReadString(Section,'VFileDir','');
@@ -296,7 +296,7 @@ begin
     Proj.Priority:=ProjectINI.ReadInteger(Section,'Priority',0);
 end;
 
-procedure ProjectToIni(const Proj:TProjectRec);
+procedure ProjectToIni(ProjectINI:TINIFile; const Proj:TProjectRec);
 begin
     ProjectINI.WriteString(Proj.Name,'Name',Proj.Name);
     ProjectINI.WriteString(Proj.Name,'VFilePath',Proj.VFilePath);
@@ -334,9 +334,11 @@ begin
 end;
 
 procedure LoadProjects;
-var i:dword;
+var
+    i:dword;
     S:TStringList;
     projname:string;
+    ProjectINI:TINIFile;
 begin
    try
       ProjectINI := TINIFile.Create(ProjectsINIFileName);
@@ -345,7 +347,7 @@ begin
       for projname in S do begin
         inc(ProjectCount);
         setLength(Projects,ProjectCount);
-        IniToProject(projname,Projects[ProjectCount-1]);
+        IniToProject(ProjectINI, projname,Projects[ProjectCount-1]);
         LoadCSVToTable(Projects[ProjectCount-1],BasePath+Projects[ProjectCount-1].Name+'.csv',[0,1,2,3,4,5,6,7,8,9,10,11,12],[0,1,2,3,4,5,6,7,8,9,10,11,12],0);
         AddProjectToListView(ProjectCount-1,Form1.ListViewProjects);
       //  showmessage(inttostr(Projects[ProjectCount-1].Priority));
@@ -368,13 +370,17 @@ begin
 end;
 
 procedure SaveProjects;
-var i:dword;
+var
+  i:dword;
+  ProjectINI:TINIFile;
 begin
-  if not FileExists(ProjectsINIFileName) then FileCreate(ProjectsINIFileName);
+  if not FileExists(ProjectsINIFileName) then
+    FileCreate(ProjectsINIFileName);
   ProjectINI := TINIFile.Create(ProjectsINIFileName);
   if Length(Projects) > 0 then
-    for i:=low(Projects) to high(Projects) do begin
-      ProjectToIni(Projects[i]);
+    for i:=low(Projects) to high(Projects) do
+    begin
+      ProjectToIni(ProjectINI, Projects[i]);
       InitGridRow1(Form1.GridJobs);
       LoadTableToGrid(Projects[i].Table,Form1.GridJobs);
       Form1.GridJobs.SaveToCSVFile(Projects[i].Name+'.csv',',',FALSE);
@@ -390,11 +396,15 @@ begin
 end;
 
 procedure DeleteProject(const I:word);
+var
+  ProjectINI:TINIFile;
 begin
-  if Form1.ListViewProjects.ItemFocused <>nil then begin
+  if Form1.ListViewProjects.ItemFocused <>nil then
+  begin
     Form1.GridJobs.Clear;
 
-    if not FileExists(ProjectsINIFileName) then FileCreate(ProjectsINIFileName);
+    if not FileExists(ProjectsINIFileName) then
+      FileCreate(ProjectsINIFileName);
     ProjectINI := TINIFile.Create(ProjectsINIFileName);
     ProjectINI.EraseSection(Projects[i-1].Name);
 
@@ -405,8 +415,6 @@ begin
     ProjectINI.Free;
   end;
 end;
-
-
 
 procedure TForm1.EditVideoFileChange(Sender: TObject);
 begin
