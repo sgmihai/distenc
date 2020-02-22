@@ -148,19 +148,15 @@ var
   ServerIp,BaseVideoURL:String;
   ServerPort:word;
 
-
   ProjectCount:DWord=0;
   PendingProjectCount:DWord=0;
   VideoFilePath,VideoFileFolder,VideoFileName,VideoFileServer,VideoFileURL:String;
   AProcess:TProcess;
-  Projects,PendingProjects:Array of TProjectRec;
+  Projects, PendingProjects:Array of TProjectRec;
   ProjPIndex:Array[0..1000] of integer;
   SceneCSVFile:String;
 
-
-
   VideoExt:TStringList;
-
 
 implementation
 
@@ -168,10 +164,9 @@ implementation
 
 { TForm1 }
 
-
 procedure LoadSettings;
 begin
-    SettingsINI := TINIFile.Create(SettingsFile);
+   SettingsINI := TINIFile.Create(SettingsFile);
    try
      ServerIP:=SettingsINI.ReadString(INI_SERVER_SECT,'ServerIP','localhost');
      ServerPort:=SettingsINI.ReadInteger(INI_SERVER_SECT,'ServerPort',6666);
@@ -226,7 +221,8 @@ begin
 end;
 
 procedure AddProjectToListView(const ProjNo:DWord; ListViewProjects:TListView);
-var li:TListItem;
+var
+  li:TListItem;
 begin
   li:=ListViewProjects.Items.Add;
   li.Caption:=inttostr(ProjNo+1);
@@ -235,8 +231,9 @@ begin
   li.Subitems.Add(inttostr(Projects[ProjNo].Priority));
 end;
 
-procedure LoadCSVToTable(var Proj:TProjectRec;const FilePath:String;const ArCol,ArLin:Arw; IgnoreFirstLines:word=0; const init:boolean=False);
- var S,line:TStringList;
+procedure LoadCSVToTable(var Proj:TProjectRec;const FilePath: String; const ArCol,ArLin:Arw; IgnoreFirstLines:word=0; const init:boolean=False);
+var
+   S,line:TStringList;
    debug1,debug2:string;
    i,p,l,j:word;
    t:TableRow;
@@ -264,7 +261,8 @@ begin
 end;
 
 Procedure LoadTableToGrid(const Table:TTAble; Grid:TStringGrid);
-  var i,j:longint;
+var
+  i,j:longint;
 begin
   Grid.Enabled:=True; Grid.Visible:=True;
   Grid.RowCount:=high(table)+2;
@@ -362,7 +360,8 @@ begin
 end;
 
 procedure InitGridRow1(Grid:TStringGrid);
-  var i:byte;
+var
+  i:byte;
 begin
   Grid.ColCount:=ColNum;
   for i:=low(ColString) to high(ColString) do
@@ -387,7 +386,8 @@ begin
 end;
 
 procedure InitPIndex;
-  var I:word;
+var
+  I:word;
 begin
    for i:=0 to 1000 do
      ProjPIndex[i]:=i;
@@ -440,8 +440,9 @@ end;
 
 procedure Listen(var FNet:TLConnection; const ServerIp:String; const ServerPort: word; var SSL:TLSSLSessionComponent; const SSLActive:Boolean=False);
 begin
-   SSL.SSLActive := false;//SSLActive;
-  if FNet.Listen(ServerPort,ServerIp) then begin
+  SSL.SSLActive := false;//SSLActive;
+  if FNet.Listen(ServerPort,ServerIp) then
+  begin
     Form1.MemoText.Append('Accepting connections');
     Form1.FIsServer := True;
   end;
@@ -453,7 +454,8 @@ Listen(Form1.Fnet,ServerIp,ServerPort,Form1.SSL,CheckBoxSSL.Checked);
 end;
 
 procedure TForm1.ButtonSendClick(Sender: TObject);
-var i:word;
+var
+  i:word;
 begin
   if Length(EditSend.Text) > 0 then begin
     if FIsServer then begin
@@ -515,7 +517,8 @@ begin
 end;
 
 procedure TForm1.LTCPDisconnect(aSocket: TLSocket);
-var i,j:longint;
+var
+  i,j:longint;
 begin
   //super shitty hack, replace with some kind of mapping, pointer to pointer array or something
    for i:=low(projects) to high(Projects) do  begin
@@ -535,8 +538,9 @@ begin
 end;
 
 function JobString(const Project:TProjectRec; const x:dword; const msg:TStringList):String;
-var PieceFileName:string;
-    var JobStr:String;
+var
+  PieceFileName:string;
+  JobStr:String;
 begin
   PieceFileName:=ExtractFileNameWithoutExt(Project.VFileName)+'-'+inttostr(x+1)+ExtractFileExt(Project.VFileName)+'.mkv';           //windows ffmpeg does not like url quoted with single quote. linux one needs it for spaces (%20)
   if msg[1]='LIN' then JobStr:='TAKEJOB'+dc+Project.Name+dc+IntToStr(x+1)+dc+Project.Encoder+dc+Project.Table[x,ColNFrames]+dc+PieceFileName+dc
@@ -555,7 +559,8 @@ begin
 end;
 
 procedure UpdateGridStats(const msg:TStringList);
-var i,j,p:word;
+var
+  i,j,p:word;
 begin
    for i:=low(Projects) to high(projects) do
        if Projects[i].Name=msg[1] then begin j:=i; break; end;
@@ -584,8 +589,9 @@ begin
 end;
 
 procedure SendJob(msg:TStringList; aSocket:TLSocket);
-  var p:dword;
-      i,j,max,maxpos:longint;
+var
+  p:dword;
+  i,j,max,maxpos:longint;
 begin
   for i:=high(projects) downto low(projects) do begin
     p:=ProjPIndex[i];                //cycling through projects in the order of their priority, kept by the ProjPIndex Array
@@ -619,7 +625,8 @@ begin
 end;
 
 function ProjectNameToProjectID(const name:string):longint;
- var i:longint;
+var
+  i:longint;
 begin
   for i:=low(projects) to high(projects) do
      if projects[i].Name=name then begin Result:=i; exit; end;
@@ -627,7 +634,8 @@ begin
 end;
 
 procedure ProcessMessage(const s:string;aSocket:TLSocket);
-var msg,sl:tstringlist;
+var
+  msg,sl:tstringlist;
 begin
   sl:=TStringList.Create;
   sl.Delimiter:=dc; sl.StrictDelimiter:=true;
@@ -668,7 +676,8 @@ begin
 end;
 
 procedure TForm1.MenuItem2Click(Sender: TObject);
-var p,x,y:word;
+var
+  p,x,y:word;
 begin
 //GridJobs.;
   p:=strtoint(ListViewProjects.ItemFocused.Caption)-1; {x:=GridJobs.Row-1;} y:=ColState;
@@ -682,7 +691,8 @@ begin
 end;
 
 procedure TForm1.MenuItem3Click(Sender: TObject);
-   var p,x,y:word;
+var
+  p,x,y:word;
 begin
   //GridJobs.;
   p:=strtoint(ListViewProjects.ItemFocused.Caption)-1;{ x:=GridJobs.Row-1;} y:=ColState;
@@ -694,15 +704,16 @@ begin
 end;
 
 procedure TForm1.gMenuItem4Click(Sender: TObject);
-  var p,x,y:word;
+var
+  p,x,y:word;
 begin
-p:=strtoint(ListViewProjects.ItemFocused.Caption)-1; {x:=GridJobs.Row-1;} y:=ColState;
-for x:=GridJobs.Selection.Top-1 to GridJobs.Selection.Bottom-1 do
-  if Projects[p].Table[x,y]='F' then begin
-    Projects[p].Table[x,y]:='U';
-    GridJobs.Cells[y,x+1]:='U';
-    ClearJob(p,x);
-  end;
+  p:=strtoint(ListViewProjects.ItemFocused.Caption)-1; {x:=GridJobs.Row-1;} y:=ColState;
+  for x:=GridJobs.Selection.Top-1 to GridJobs.Selection.Bottom-1 do
+    if Projects[p].Table[x,y]='F' then begin
+      Projects[p].Table[x,y]:='U';
+      GridJobs.Cells[y,x+1]:='U';
+      ClearJob(p,x);
+    end;
 end;
 
 procedure TForm1.MenuItem5Click(Sender: TObject);
@@ -732,7 +743,8 @@ begin
 end;
 
 procedure TForm1.KNEditPriorityChange(Sender: TObject);
-var i:word;
+var
+  i:word;
 begin
    if ListViewProjects.Selected <> nil then begin
      Projects[strtoint(ListViewProjects.Selected.Caption)-1].Priority:=KNEditPriority.ValueAsInt;
@@ -743,7 +755,8 @@ begin
 end;
 
 procedure AddQProject(i:dword);
-  var CSVStrings:TSTringList;
+var
+  CSVStrings:TSTringList;
 begin
   inc(ProjectCount);
   setLength(Projects,ProjectCount);
@@ -759,7 +772,9 @@ begin
 end;
 
 procedure TForm1.TimerCheckQueueTimer(Sender: TObject);
-  var i:dword; SceneCSVNewFileName:string;
+var
+  i:dword;
+  SceneCSVNewFileName:string;
 begin
      TimerCheckQueue.Enabled:=False;
      //debug check if there's no bugs when deleting while looping through this.
@@ -779,7 +794,8 @@ end;
 
 procedure CreatePendingProject(VideoFilePath:String);
 var
-  p:word; s,SceneCSVNewFileName:string;
+  p:word;
+  s, SceneCSVNewFileName:string;
 begin
   if FileExists(VideoFilePath) then
    if CheckIfValidVideoFile(VideoFilePath) then begin
@@ -893,8 +909,7 @@ begin
       GridJobs.Canvas.Brush.Color:=clNone;    }
 end;
 
-procedure TForm1.GridJobsSelectCell(Sender: TObject; aCol, aRow: Integer;
-  var CanSelect: Boolean);
+procedure TForm1.GridJobsSelectCell(Sender: TObject; aCol, aRow: Integer; var CanSelect: Boolean);
 begin
   if ACol = ColPriority then
     GridJobs.Options := GridJobs.Options+[goEditing]
@@ -929,6 +944,4 @@ begin
 end;
 
 end.
-
-
 
