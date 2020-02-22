@@ -374,8 +374,6 @@ var
   i:dword;
   ProjectINI:TINIFile;
 begin
-  if not FileExists(ProjectsINIFileName) then
-    FileCreate(ProjectsINIFileName);
   ProjectINI := TINIFile.Create(ProjectsINIFileName);
   if Length(Projects) > 0 then
     for i:=low(Projects) to high(Projects) do
