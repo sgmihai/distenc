@@ -140,7 +140,6 @@ type
 var
   Form1: TForm1;
   BasePath,SettingsPath:String;
-  SettingsINI:TINIFile;
   SettingsFile,ProjectDir:String;
 
   //ProjectINI:TINIFile; //it always used local in functions, TODO deleted it
@@ -151,7 +150,6 @@ var
   ProjectCount:DWord=0;
   PendingProjectCount:DWord=0;
   VideoFilePath,VideoFileFolder,VideoFileName,VideoFileServer,VideoFileURL:String;
-  AProcess:TProcess;
   Projects, PendingProjects:Array of TProjectRec;
   ProjPIndex:Array[0..1000] of integer;
   SceneCSVFile:String;
@@ -165,6 +163,8 @@ implementation
 { TForm1 }
 
 procedure LoadSettings;
+var
+  SettingsINI: TINIFile;
 begin
    SettingsINI := TINIFile.Create(SettingsFile);
    try
@@ -187,6 +187,7 @@ var
   Buffer: array[1..BUF_SIZE] of byte;
   StartTime, CurrentTime: TDateTime;
   APOutput:TStringList;
+  AProcess:TProcess;
 begin
   try
     AProcess := TProcess.Create(nil);
