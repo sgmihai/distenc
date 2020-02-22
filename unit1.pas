@@ -399,20 +399,21 @@ procedure DeleteProject(const I:word);
 var
   ProjectINI:TINIFile;
 begin
-  if Form1.ListViewProjects.ItemFocused <>nil then
+  if Form1.ListViewProjects.ItemFocused <> nil then
   begin
     Form1.GridJobs.Clear;
 
-    if not FileExists(ProjectsINIFileName) then
-      FileCreate(ProjectsINIFileName);
-    ProjectINI := TINIFile.Create(ProjectsINIFileName);
-    ProjectINI.EraseSection(Projects[i-1].Name);
+    if FileExists(ProjectsINIFileName) then
+    begin
+      ProjectINI := TINIFile.Create(ProjectsINIFileName);
+      ProjectINI.EraseSection(Projects[i-1].Name);
 
-    delete(Projects,i-1,1); dec(ProjectCount);
-    InitPIndex;
-    AnySortt(ProjPIndex, ProjectCount, sizeof(Integer), @ComparePrio);
-    Form1.ListViewProjects.Items.Delete(i-1);
-    ProjectINI.Free;
+      delete(Projects,i-1,1); dec(ProjectCount);
+      InitPIndex;
+      AnySortt(ProjPIndex, ProjectCount, sizeof(Integer), @ComparePrio);
+      Form1.ListViewProjects.Items.Delete(i-1);
+      ProjectINI.Free;
+    end;
   end;
 end;
 
