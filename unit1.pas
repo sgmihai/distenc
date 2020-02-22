@@ -372,13 +372,14 @@ var i:dword;
 begin
   if not FileExists(ProjectsINIFileName) then FileCreate(ProjectsINIFileName);
   ProjectINI := TINIFile.Create(ProjectsINIFileName);
-   for i:=low(Projects) to high(Projects) do begin
+  if Length(Projects) > 0 then
+    for i:=low(Projects) to high(Projects) do begin
       ProjectToIni(Projects[i]);
       InitGridRow1(Form1.GridJobs);
       LoadTableToGrid(Projects[i].Table,Form1.GridJobs);
       Form1.GridJobs.SaveToCSVFile(Projects[i].Name+'.csv',',',FALSE);
-   end;
-   ProjectINI.Free;
+    end;
+  ProjectINI.Free;
 end;
 
 procedure InitPIndex;
@@ -409,13 +410,15 @@ end;
 
 procedure TForm1.EditVideoFileChange(Sender: TObject);
 begin
-  VideoFilePath:=EditVideoFile.Text;
+  VideoFilePath:=IncludeTrailingPathDelimiter(EditVideoFile.Text);
 end;
 
 procedure TForm1.EditVideoURLChange(Sender: TObject);
 begin
-  if EditVideoURL.Text <>'' then VideoFileURL:=EditVideoURL.Text
-                            else VideoFileURL:=BaseVideoURL+VideoFilePath;
+  if EditVideoURL.Text <>'' then
+    VideoFileURL:= EditVideoURL.Text
+  else
+    VideoFileURL:= BaseVideoURL + VideoFilePath;
 end;
 
 procedure TForm1.TimerQuitTimer(Sender: TObject);
@@ -768,7 +771,8 @@ begin
 end;
 
 procedure CreatePendingProject(VideoFilePath:String);
-  var p:word; s,SceneCSVNewFileName:string;
+var
+  p:word; s,SceneCSVNewFileName:string;
 begin
   if FileExists(VideoFilePath) then
    if CheckIfValidVideoFile(VideoFilePath) then begin
@@ -838,7 +842,8 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
-var i:word;
+var
+  i:word;
 begin
   InitPIndex; //to do remove this shitty code. used to initalized the index array that is used to sort priority based positon of projects
   LoadProjects;
@@ -848,9 +853,9 @@ begin
 end;
 
 
-procedure TForm1.GridJobsMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-  var Col,Row:Integer;
+procedure TForm1.GridJobsMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Col,Row:Integer;
 begin
    if Button = mbRight then begin
       GridJobs.MouseToCell(X,Y,Col,Row); // Convert X,Y coordinates of mouse to cell Col & Row
@@ -904,9 +909,11 @@ begin
 end;
 
 procedure TForm1.ListViewProjectsSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
-var i:word;
+var
+  i:word;
 begin
-     if Selected then LoadProjectView(strtoint(Item.Caption)-1);
+  if Selected then
+    LoadProjectView(strtoint(Item.Caption)-1);
 end;
 
 procedure TForm1.ButtonNewProjectClick(Sender: TObject);
