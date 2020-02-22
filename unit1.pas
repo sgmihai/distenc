@@ -225,7 +225,7 @@ begin
   end;
 end;
 
-procedure AddProjectToListView(const ProjNo:DWord;out ListViewProjects:TListView);
+procedure AddProjectToListView(const ProjNo:DWord; ListViewProjects:TListView);
 var li:TListItem;
 begin
   li:=ListViewProjects.Items.Add;
@@ -263,7 +263,7 @@ begin
   end;
 end;
 
-Procedure LoadTableToGrid(const Table:TTAble;out Grid:TStringGrid);
+Procedure LoadTableToGrid(const Table:TTAble; Grid:TStringGrid);
   var i,j:longint;
 begin
   Grid.Enabled:=True; Grid.Visible:=True;
@@ -273,7 +273,7 @@ begin
       Grid.Cells[j,i+1]:=Table[i,j];
 end;
 
-procedure IniToProject(ProjectINI:TINIFile; const Section:String; out Proj:TProjectRec);
+procedure IniToProject(ProjectINI:TINIFile; const Section:String; out Proj:TProjectRec); //yes out here is good
 begin
     Proj.Name:=ProjectINI.ReadString(Section,'Name','');
     Proj.VFileDir:=ProjectINI.ReadString(Section,'VFileDir','');
@@ -361,7 +361,7 @@ begin
   end;
 end;
 
-procedure InitGridRow1(out Grid:TStringGrid);
+procedure InitGridRow1(Grid:TStringGrid);
   var i:byte;
 begin
   Grid.ColCount:=ColNum;
@@ -547,7 +547,7 @@ begin
   Result:=JobStr;
 end;
 
-procedure CheckGridUpdate(const i:dword;out Grid:TStringGrid);
+procedure CheckGridUpdate(const i:dword; Grid:TStringGrid);
 begin
   if Form1.ListViewProjects.ItemFocused <>nil then
     if StrToInt(Form1.ListViewProjects.ItemFocused.Caption)=(i+1) then
